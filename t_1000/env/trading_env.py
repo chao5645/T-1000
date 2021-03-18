@@ -38,7 +38,7 @@ class TradingEnv(gym.Env):
         self.action_space = spaces.Box(
             low=np.array([0, 0]),
             high=np.array([action_space, 1]),
-            dtype=np.float16)
+            dtype=np.float32)
 
 
         # obs space = (num assets, indicator + (balance, cost, sales, net_worth) + (shares bought, shares sold, shares held foreach asset))
@@ -49,7 +49,7 @@ class TradingEnv(gym.Env):
             low=-np.finfo(np.float32).max,
             high=np.finfo(np.float32).max,
             shape=observation_space,
-            dtype=np.float16)
+            dtype=np.float32)
 
     def reset(self):
         # Reset the state of the environment to an initial state

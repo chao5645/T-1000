@@ -10,7 +10,7 @@ import gym
 from ray.rllib.env import MultiAgentEnv
 from ray.rllib.env.base_env import _DUMMY_AGENT_ID
 from ray.rllib.policy.sample_batch import DEFAULT_POLICY_ID
-from ray.rllib.evaluation.episode import _flatten_action
+from ray.rllib.evaluation.episode import flatten_to_single_ndarray
 
 
 
@@ -30,8 +30,10 @@ def default_policy_agent_mapping(_):
 def rollout(agent, env_name, num_steps, no_render=True):
     policy_agent_mapping = default_policy_agent_mapping
 
+    print("agent: {} env_name: {}".format(agent, env_name))
     if hasattr(agent, "workers"):
-        env = agent.workers.local_worker().env
+        env = agent.workers.local_worker().env_creator(agent.workers.local_worker().env_context)
+        print("local_work: {}".format(agent.workers.local_worker()))
         multiagent = isinstance(env, MultiAgentEnv)
         if agent.workers.local_worker().multiagent:
             policy_agent_mapping = agent.config["multiagent"][
@@ -42,7 +44,7 @@ def rollout(agent, env_name, num_steps, no_render=True):
                       for p, m in policy_map.items()}
         use_lstm = {p: len(s) > 0 for p, s in state_init.items()}
         action_init = {
-            p: _flatten_action(m.action_space.sample())
+            p: flatten_to_single_ndarray(m.action_space.sample())
             for p, m in policy_map.items()
         }
     else:
@@ -54,6 +56,7 @@ def rollout(agent, env_name, num_steps, no_render=True):
     while steps < (num_steps or steps + 1):
         mapping_cache = {}  # in case policy_agent_mapping is stochastic
 
+        print(env)
         obs = env.reset()
         agent_states = DefaultMapping(
             lambda agent_id: state_init[mapping_cache[agent_id]])
@@ -84,7 +87,7 @@ def rollout(agent, env_name, num_steps, no_render=True):
                             prev_action=prev_actions[agent_id],
                             prev_reward=prev_rewards[agent_id],
                             policy_id=policy_id)
-                    a_action = _flatten_action(a_action)  # tuple actions
+                    a_action = flatten_to_single_ndarray(a_action)  # tuple actions
                     action_dict[agent_id] = a_action
                     prev_actions[agent_id] = a_action
             action = action_dict
