@@ -163,6 +163,7 @@ class T1000:
             "lr_schedule": grid_search(lr_schedule),
             "env": env_name,
             "num_workers": 3,  # parallelism
+            "num_gpus": 1,
             'observation_filter': 'MeanStdFilter',
             'vf_share_layers': True,
             "env_config": {
@@ -215,7 +216,8 @@ class T1000:
 
     def train(self, timesteps, checkpoint_freq, lr_schedule):
         register_env(env_name, lambda config: TradingEnv(config))
-        ray.init()
+        ray.init(address="192.168.100.149:6379", _redis_password="5241590000000000")
+        #ray.init()
 
         self.generate_config_spec(lr_schedule=lr_schedule, df_type='train')
 

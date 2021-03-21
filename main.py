@@ -5,7 +5,7 @@ if __name__ == '__main__':
 	parser.add_argument('-a', action="store", dest='assets', nargs='+', help='assets to test')
 	parser.add_argument('-c', action="store", dest="currency", type=str, default='DAI')
 	parser.add_argument('-g', action="store", dest="granularity", type=str, default='hour')
-	parser.add_argument('-d', action="store", dest="datapoints", type=int, default=1800)
+	parser.add_argument('-d', action="store", dest="datapoints", type=int, default=180)
 	parser.add_argument('-t', action="store", dest="timesteps", default=1e5)
 	parser.add_argument('-f', action="store", dest="checkpoint_freq", type=int, default=100)
 	parser.add_argument('-b', action="store", dest="initial_account_balance", type=float, default=300)

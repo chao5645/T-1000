@@ -4,7 +4,6 @@ from termcolor import colored
 
 import ta
 import datetime
-import talib
 import os
 import colorama
 import requests
