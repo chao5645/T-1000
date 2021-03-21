@@ -163,7 +163,7 @@ class T1000:
             "lr_schedule": grid_search(lr_schedule),
             "env": env_name,
             "num_workers": 3,  # parallelism
-            "num_gpus": 1,
+            "num_gpus": 0,
             'observation_filter': 'MeanStdFilter',
             'vf_share_layers': True,
             "env_config": {
