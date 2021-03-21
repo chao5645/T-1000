@@ -216,8 +216,8 @@ class T1000:
 
     def train(self, timesteps, checkpoint_freq, lr_schedule):
         register_env(env_name, lambda config: TradingEnv(config))
-        ray.init(address="192.168.100.149:6379", _redis_password="5241590000000000")
-        #ray.init()
+        #ray.init(address="192.168.100.149:6379", _redis_password="5241590000000000")
+        ray.init()
 
         self.generate_config_spec(lr_schedule=lr_schedule, df_type='train')
 
