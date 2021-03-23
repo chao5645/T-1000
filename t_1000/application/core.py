@@ -1,7 +1,7 @@
 import ray
 from t_1000.application.handlers import find_results_folder, get_instruments_from_checkpoint
 from utils.data_processing import get_datasets
-from ray.tune import grid_search, run
+from ray import tune
 from t_1000.env.trading_env import TradingEnv
 from ray.tune.registry import register_env
 from ray.rllib.agents.registry import get_agent_class
@@ -12,9 +12,8 @@ from ray.rllib.env.base_env import _DUMMY_AGENT_ID
 from ray.rllib.policy.sample_batch import DEFAULT_POLICY_ID
 from ray.rllib.evaluation.episode import flatten_to_single_ndarray
 
-
-
 env_name = 'YesMan-v1'
+
 
 class DefaultMapping(collections.defaultdict):
     """default_factory now takes as an argument the missing key."""
@@ -22,6 +21,7 @@ class DefaultMapping(collections.defaultdict):
     def __missing__(self, key):
         self[key] = value = self.default_factory(key)
         return value
+
 
 def default_policy_agent_mapping(_):
     return DEFAULT_POLICY_ID
@@ -110,8 +110,10 @@ def rollout(agent, env_name, num_steps, no_render=True):
             steps += 1
             obs = next_obs
 
+
 class T1000:
-    def __init__(self, algo, assets, currency, granularity, datapoints, checkpoint_path, initial_account_balance, exchange_commission, exchange):
+    def __init__(self, algo, assets, currency, granularity, datapoints, checkpoint_path, initial_account_balance,
+                 exchange_commission, exchange):
         self.algo = algo
         self.assets = assets
         self.currency = currency
@@ -160,9 +162,9 @@ class T1000:
 
     def generate_config_spec(self, lr_schedule, df_type):
         self.config_spec = {
-            "lr_schedule": grid_search(lr_schedule),
+            "lr_schedule": tune.grid_search(lr_schedule),
             "env": env_name,
-            "num_workers": 3,  # parallelism
+            "num_workers": 6,  # parallelism
             "num_gpus": 0,
             'observation_filter': 'MeanStdFilter',
             'vf_share_layers': True,
@@ -182,7 +184,7 @@ class T1000:
         for asset in self.assets:
             self.config_spec['env_config']['df_complete'][asset] = self.df[asset][df_type]
             self.config_spec['env_config']['df_features'][asset] = self.df[asset][df_type].loc[:,
-                                                                                               self.df[asset][df_type].columns != 'Date']
+                                                                   self.df[asset][df_type].columns != 'Date']
 
     def backtest(self, checkpoint_path):
         agent_config, assets, currency, datapoints, granularity = get_instruments_from_checkpoint(
@@ -201,7 +203,7 @@ class T1000:
         for asset in assets:
             config['df_complete'][asset] = self.df[asset]['rollout']
             config['df_features'][asset] = self.df[asset]['rollout'].loc[:,
-                                                                         self.df[asset]['rollout'].columns != 'Date']
+                                           self.df[asset]['rollout'].columns != 'Date']
 
         register_env(env_name, lambda _: TradingEnv(config))
         ray.init()
@@ -221,11 +223,11 @@ class T1000:
 
         self.generate_config_spec(lr_schedule=lr_schedule, df_type='train')
 
-        run(name=self.algo,
-            run_or_experiment=self.algo,
-            checkpoint_at_end=True,
-            stop={'timesteps_total': timesteps},
-            checkpoint_freq=checkpoint_freq,
-            config=self.config_spec,
-            local_dir=find_results_folder(),
-            trial_name_creator=self.trial_name_string)
+        tune.run(name=self.algo,
+                 run_or_experiment=self.algo,
+                 checkpoint_at_end=True,
+                 stop={'timesteps_total': timesteps},
+                 checkpoint_freq=checkpoint_freq,
+                 config=self.config_spec,
+                 local_dir=find_results_folder(),
+                 trial_name_creator=self.trial_name_string)
